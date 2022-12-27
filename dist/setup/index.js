@@ -64751,6 +64751,7 @@ function installNogil(releaseSpec) {
             if (exitCode !== 0) {
                 throw new Error(`Failed to install nogil`);
             }
+            utils_1.createSymlinkInFolder(installDir, 'python.exe', 'python3.exe', true);
         }
         else {
             const nogilPath = yield tc.downloadTool(downloadUrl);

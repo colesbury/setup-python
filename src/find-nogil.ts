@@ -3,6 +3,7 @@ import * as exec from '@actions/exec';
 import fs from 'fs';
 import {
   IS_WINDOWS,
+  createSymlinkInFolder,
 } from './utils';
 
 import * as core from '@actions/core';
@@ -121,6 +122,13 @@ async function installNogil(releaseSpec: tc.IToolRelease) {
     if (exitCode !== 0) {
       throw new Error(`Failed to install nogil`);
     }
+
+    createSymlinkInFolder(
+      installDir,
+      'python.exe',
+      'python3.exe',
+      true
+    );
   } else {
     const nogilPath = await tc.downloadTool(downloadUrl);
 
