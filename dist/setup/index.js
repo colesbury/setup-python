@@ -64621,6 +64621,152 @@ exports["default"] = PoetryCache;
 
 /***/ }),
 
+/***/ 7738:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.findNogilVersion = void 0;
+const path = __importStar(__nccwpck_require__(1017));
+const exec = __importStar(__nccwpck_require__(1514));
+const fs_1 = __importDefault(__nccwpck_require__(7147));
+const utils_1 = __nccwpck_require__(1314);
+const core = __importStar(__nccwpck_require__(2186));
+const tc = __importStar(__nccwpck_require__(7784));
+const cache = __importStar(__nccwpck_require__(7799));
+const find_python_1 = __nccwpck_require__(9996);
+const os = __importStar(__nccwpck_require__(2037));
+const crypto = __importStar(__nccwpck_require__(6113));
+const MANIFEST = [
+    {
+        "version": "3.9.10",
+        "stable": false,
+        "release_url": "https://github.com/colesbury/nogil/releases/tag/v3.9.10-nogil-2022-12-21",
+        "files": [
+            {
+                "filename": "python-3.9.10-amd64.exe",
+                "arch": "x64",
+                "platform": "win32",
+                "download_url": "https://github.com/colesbury/nogil/releases/download/v3.9.10-nogil-2022-12-21/python-3.9.10-amd64.exe"
+            },
+            {
+                "filename": "python-3.9.10-nogil-macos.tar.gz",
+                "arch": "x64",
+                "platform": "darwin",
+                "download_url": "https://github.com/colesbury/nogil/releases/download/v3.9.10-nogil-2022-12-21/python-3.9.10-nogil-macos.tar.gz"
+            },
+        ]
+    },
+];
+function findNogilVersion(version, architecture, updateEnvironment) {
+    return __awaiter(this, void 0, void 0, function* () {
+        // remove "nogil" prefix
+        version = version.replace(/^nogil[\-]?/, "");
+        const desugaredVersionSpec = find_python_1.desugarDevVersion(version);
+        const semanticVersionSpec = find_python_1.pythonVersionToSemantic(desugaredVersionSpec);
+        core.debug(`Semantic version spec of ${version} is ${semanticVersionSpec}`);
+        const releaseData = yield tc.findFromManifest(semanticVersionSpec, false, MANIFEST, architecture);
+        if (!releaseData) {
+            throw new Error(`Version ${version} with arch ${architecture} not found`);
+        }
+        const release = yield installNogil(releaseData);
+        const installDir = release.installDir;
+        const pipDir = utils_1.IS_WINDOWS ? 'Scripts' : 'bin';
+        const _binDir = path.join(installDir, pipDir);
+        const binaryExtension = utils_1.IS_WINDOWS ? '.exe' : '';
+        const pythonPath = path.join(utils_1.IS_WINDOWS ? installDir : _binDir, `python${binaryExtension}`);
+        const pythonLocation = utils_1.IS_WINDOWS ? installDir : _binDir;
+        if (updateEnvironment) {
+            core.exportVariable('pythonLocation', installDir);
+            // https://cmake.org/cmake/help/latest/module/FindPython.html#module:FindPython
+            core.exportVariable('Python_ROOT_DIR', installDir);
+            // https://cmake.org/cmake/help/latest/module/FindPython2.html#module:FindPython2
+            core.exportVariable('Python2_ROOT_DIR', installDir);
+            // https://cmake.org/cmake/help/latest/module/FindPython3.html#module:FindPython3
+            core.exportVariable('Python3_ROOT_DIR', installDir);
+            core.exportVariable('PKG_CONFIG_PATH', pythonLocation + '/lib/pkgconfig');
+            core.addPath(pythonLocation);
+            core.addPath(_binDir);
+        }
+        core.setOutput('python-version', `nogil-${releaseData.version}`);
+        core.setOutput('python-path', pythonPath);
+        return { impl: 'nogil', version: releaseData.version };
+    });
+}
+exports.findNogilVersion = findNogilVersion;
+function sha256(data) {
+    return crypto.createHash("sha256").update(data, "binary").digest("base64");
+}
+function installNogil(releaseSpec) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const downloadUrl = releaseSpec.files[0].download_url;
+        var dest = undefined;
+        if (utils_1.IS_WINDOWS) {
+            const filename = path.basename(new URL(downloadUrl).pathname);
+            dest = path.join(process.env['RUNNER_TEMP'] || "", filename);
+        }
+        const installDir = path.join(os.homedir(), `nogil-${releaseSpec.version}`);
+        const cacheKey = `colesbury/setup-python-${process.env['RUNNER_OS']}-nogil-${releaseSpec.version}-${sha256(downloadUrl)}`;
+        const cachePath = yield cache.restoreCache([installDir], cacheKey);
+        if (cachePath) {
+            return { installDir };
+        }
+        core.info(`Downloading nogil from "${downloadUrl}" ...`);
+        const nogilPath = yield tc.downloadTool(downloadUrl, dest);
+        if (utils_1.IS_WINDOWS) {
+            core.info('Installing downloaded exe...');
+            const exitCode = yield exec.exec(nogilPath, ['/passive', `TargetDir=${installDir}`]);
+            if (exitCode !== 0) {
+                throw new Error(`Failed to install nogil`);
+            }
+        }
+        else {
+            const nogilPath = yield tc.downloadTool(downloadUrl);
+            core.info('Extracting downloaded archive...');
+            const downloadDir = yield tc.extractTar(nogilPath);
+            const archiveName = fs_1.default.readdirSync(downloadDir)[0];
+            fs_1.default.renameSync(path.join(downloadDir, archiveName), installDir);
+        }
+        yield cache.saveCache([installDir], cacheKey);
+        return { installDir };
+    });
+}
+
+
+/***/ }),
+
 /***/ 4003:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -64796,7 +64942,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.pythonVersionToSemantic = exports.useCpythonVersion = void 0;
+exports.pythonVersionToSemantic = exports.desugarDevVersion = exports.useCpythonVersion = void 0;
 const os = __importStar(__nccwpck_require__(2037));
 const path = __importStar(__nccwpck_require__(1017));
 const utils_1 = __nccwpck_require__(1314);
@@ -64894,6 +65040,7 @@ function desugarDevVersion(versionSpec) {
     const devVersion = /^(\d+)\.(\d+)-dev$/;
     return versionSpec.replace(devVersion, '~$1.$2.0-0');
 }
+exports.desugarDevVersion = desugarDevVersion;
 /** Extracts python version from install path from hosted tool cache as described in README.md */
 function versionFromPath(installDir) {
     const parts = installDir.split(path.sep);
@@ -65236,6 +65383,7 @@ exports.logWarning = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const finder = __importStar(__nccwpck_require__(9996));
 const finderPyPy = __importStar(__nccwpck_require__(4003));
+const finderNogil = __importStar(__nccwpck_require__(7738));
 const path = __importStar(__nccwpck_require__(1017));
 const os = __importStar(__nccwpck_require__(2037));
 const fs_1 = __importDefault(__nccwpck_require__(7147));
@@ -65298,6 +65446,11 @@ function run() {
                     const installed = yield finderPyPy.findPyPyVersion(version, arch, updateEnvironment);
                     pythonVersion = `${installed.resolvedPyPyVersion}-${installed.resolvedPythonVersion}`;
                     core.info(`Successfully set up PyPy ${installed.resolvedPyPyVersion} with Python (${installed.resolvedPythonVersion})`);
+                }
+                else if (version.startsWith("nogil")) {
+                    const installed = yield finderNogil.findNogilVersion(version, arch, updateEnvironment);
+                    pythonVersion = installed.version;
+                    core.info(`Successfully set up nogil (${pythonVersion})`);
                 }
                 else {
                     const installed = yield finder.useCpythonVersion(version, arch, updateEnvironment);

@@ -128,7 +128,7 @@ export async function useCpythonVersion(
 }
 
 /** Convert versions like `3.8-dev` to a version like `~3.8.0-0`. */
-function desugarDevVersion(versionSpec: string) {
+export function desugarDevVersion(versionSpec: string) {
   const devVersion = /^(\d+)\.(\d+)-dev$/;
   return versionSpec.replace(devVersion, '~$1.$2.0-0');
 }

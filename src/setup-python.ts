@@ -1,6 +1,7 @@
 import * as core from '@actions/core';
 import * as finder from './find-python';
 import * as finderPyPy from './find-pypy';
+import * as finderNogil from './find-nogil';
 import * as path from 'path';
 import * as os from 'os';
 import fs from 'fs';
@@ -87,6 +88,14 @@ async function run() {
         core.info(
           `Successfully set up PyPy ${installed.resolvedPyPyVersion} with Python (${installed.resolvedPythonVersion})`
         );
+      } else if (version.startsWith("nogil")) {
+        const installed = await finderNogil.findNogilVersion(
+          version,
+          arch,
+          updateEnvironment
+        );
+        pythonVersion = installed.version;
+        core.info(`Successfully set up nogil (${pythonVersion})`);
       } else {
         const installed = await finder.useCpythonVersion(
           version,
