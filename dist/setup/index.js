@@ -64703,6 +64703,11 @@ function findNogilVersion(version, architecture, updateEnvironment) {
         }
         const release = yield installNogil(releaseData);
         const installDir = release.installDir;
+        if (utils_1.IS_WINDOWS) {
+            // Create the symlink every time because Windows doesn't seem to handle
+            // symlinks from the cache well.
+            utils_1.createSymlinkInFolder(installDir, 'python.exe', 'python3.exe', true);
+        }
         const pipDir = utils_1.IS_WINDOWS ? 'Scripts' : 'bin';
         const _binDir = path.join(installDir, pipDir);
         const binaryExtension = utils_1.IS_WINDOWS ? '.exe' : '';
@@ -64751,7 +64756,6 @@ function installNogil(releaseSpec) {
             if (exitCode !== 0) {
                 throw new Error(`Failed to install nogil`);
             }
-            utils_1.createSymlinkInFolder(installDir, 'python.exe', 'python3.exe', true);
         }
         else {
             const nogilPath = yield tc.downloadTool(downloadUrl);
@@ -64760,8 +64764,17 @@ function installNogil(releaseSpec) {
             const archiveName = fs_1.default.readdirSync(downloadDir)[0];
             fs_1.default.renameSync(path.join(downloadDir, archiveName), installDir);
         }
+        yield installPip(installDir);
         yield cache.saveCache([installDir], cacheKey);
         return { installDir };
+    });
+}
+function installPip(pythonLocation) {
+    return __awaiter(this, void 0, void 0, function* () {
+        core.info('Installing and updating pip');
+        const pythonBinary = path.join(pythonLocation, 'python');
+        yield exec.exec(`${pythonBinary} -m ensurepip`);
+        yield exec.exec(`${pythonLocation}/python -m pip install --upgrade pip --no-warn-script-location`);
     });
 }
 

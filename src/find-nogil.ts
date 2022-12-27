@@ -67,6 +67,17 @@ export async function findNogilVersion(
   const release = await installNogil(releaseData);
   const installDir = release.installDir;
 
+  if (IS_WINDOWS) {
+    // Create the symlink every time because Windows doesn't seem to handle
+    // symlinks from the cache well.
+    createSymlinkInFolder(
+      installDir,
+      'python.exe',
+      'python3.exe',
+      true
+    );
+  }
+
   const pipDir = IS_WINDOWS ? 'Scripts' : 'bin';
   const _binDir = path.join(installDir, pipDir);
   const binaryExtension = IS_WINDOWS ? '.exe' : '';
@@ -122,13 +133,6 @@ async function installNogil(releaseSpec: tc.IToolRelease) {
     if (exitCode !== 0) {
       throw new Error(`Failed to install nogil`);
     }
-
-    createSymlinkInFolder(
-      installDir,
-      'python.exe',
-      'python3.exe',
-      true
-    );
   } else {
     const nogilPath = await tc.downloadTool(downloadUrl);
 
@@ -139,7 +143,19 @@ async function installNogil(releaseSpec: tc.IToolRelease) {
     fs.renameSync(path.join(downloadDir, archiveName), installDir);
   }
 
+  await installPip(installDir);
+
   await cache.saveCache([installDir], cacheKey);
 
   return {installDir};
+}
+
+async function installPip(pythonLocation: string) {
+  core.info('Installing and updating pip');
+  const pythonBinary = path.join(pythonLocation, 'python');
+  await exec.exec(`${pythonBinary} -m ensurepip`);
+
+  await exec.exec(
+    `${pythonLocation}/python -m pip install --upgrade pip --no-warn-script-location`
+  );
 }
