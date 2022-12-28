@@ -64764,7 +64764,7 @@ function installNogil(releaseSpec) {
             const archiveName = fs_1.default.readdirSync(downloadDir)[0];
             fs_1.default.renameSync(path.join(downloadDir, archiveName), installDir);
         }
-        yield installPip(installDir);
+        yield installPip(utils_1.IS_WINDOWS ? installDir : path.join(installDir, 'bin'));
         yield cache.saveCache([installDir], cacheKey);
         return { installDir };
     });

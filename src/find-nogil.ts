@@ -143,7 +143,7 @@ async function installNogil(releaseSpec: tc.IToolRelease) {
     fs.renameSync(path.join(downloadDir, archiveName), installDir);
   }
 
-  await installPip(installDir);
+  await installPip(IS_WINDOWS ? installDir : path.join(installDir, 'bin'));
 
   await cache.saveCache([installDir], cacheKey);
 
