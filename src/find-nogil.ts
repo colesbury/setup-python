@@ -23,19 +23,25 @@ const MANIFEST : tc.IToolRelease[] = [
   {
     "version": "3.9.10",
     "stable": false,
-    "release_url": "https://github.com/colesbury/nogil/releases/tag/v3.9.10-nogil-2022-12-21",
+    "release_url": "https://github.com/colesbury/nogil/releases/tag/v3.9.10-nogil-2023-04-01",
     "files": [
       {
         "filename": "python-3.9.10-amd64.exe",
         "arch": "x64",
         "platform": "win32",
-        "download_url": "https://github.com/colesbury/nogil-actions-test/releases/download/v3.9.10-nogil-test1/python-3.9.10-amd64.exe"
+        "download_url": "https://github.com/colesbury/nogil/releases/download/v3.9.10-nogil-2023-04-01/python-3.9.10-amd64.exe"
       },
       {
         "filename": "python-3.9.10-nogil-macos.tar.gz",
         "arch": "x64",
         "platform": "darwin",
-        "download_url": "https://github.com/colesbury/nogil/releases/download/v3.9.10-nogil-2022-12-21/python-3.9.10-nogil-macos.tar.gz"
+        "download_url": "https://github.com/colesbury/nogil/releases/download/v3.9.10-nogil-2023-04-01/python-3.9.10-nogil-macos.tar.gz"
+      },
+      {
+        "filename": "python-3.9.10-nogil-linux.tar.gz",
+        "arch": "x64",
+        "platform": "linux",
+        "download_url": "https://github.com/colesbury/nogil/releases/download/v3.9.10-nogil-2023-04-01/python-3.9.10-nogil-linux.tar.gz"
       },
     ]
   },
