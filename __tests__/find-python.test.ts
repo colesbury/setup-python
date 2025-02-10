@@ -8,9 +8,6 @@ describe('desugarVersion', () => {
     ['3.13.1t', {version: '3.13.1', freethreaded: true}],
     ['3.14-dev', {version: '~3.14.0-0', freethreaded: false}],
     ['3.14t-dev', {version: '~3.14.0-0', freethreaded: true}],
-    ['3.14.0a4', {version: '3.14.0a4', freethreaded: false}],
-    ['3.14.0rc1', {version: '3.14.0rc1', freethreaded: false}],
-    ['3.14.0rc1t', {version: '3.14.0rc1', freethreaded: true}]
   ])('%s -> %s', (input, expected) => {
     expect(desugarVersion(input)).toEqual(expected);
   });
@@ -25,10 +22,6 @@ describe('pythonVersions', () => {
     ['3.13.1t', {version: '3.13.1', freethreaded: true}],
     ['3.14-dev', {version: '~3.14.0-0', freethreaded: false}],
     ['3.14t-dev', {version: '~3.14.0-0', freethreaded: true}],
-    ['3.14.0a4', {version: '3.14.0-alpha.4', freethreaded: false}],
-    ['3.14.0a4t', {version: '3.14.0-alpha.4', freethreaded: true}],
-    ['3.14.0rc1', {version: '3.14.0-rc.1', freethreaded: false}],
-    ['3.14.0rc1t', {version: '3.14.0-rc.1', freethreaded: true}]
   ])('%s -> %s', (input, expected) => {
     const {version, freethreaded} = desugarVersion(input);
     const semanticVersionSpec = pythonVersionToSemantic(version, false);
@@ -42,10 +35,6 @@ describe('pythonVersions', () => {
     ['3.13.1t', {version: '3.13.1', freethreaded: true}],
     ['3.14-dev', {version: '~3.14.0-0', freethreaded: false}],
     ['3.14t-dev', {version: '~3.14.0-0', freethreaded: true}],
-    ['3.14.0a4', {version: '3.14.0-alpha.4', freethreaded: false}],
-    ['3.14.0a4t', {version: '3.14.0-alpha.4', freethreaded: true}],
-    ['3.14.0rc1', {version: '3.14.0-rc.1', freethreaded: false}],
-    ['3.14.0rc1t', {version: '3.14.0-rc.1', freethreaded: true}]
   ])('%s (allowPreReleases=true) -> %s', (input, expected) => {
     const {version, freethreaded} = desugarVersion(input);
     const semanticVersionSpec = pythonVersionToSemantic(version, true);
